@@ -1,0 +1,44 @@
+#cargo run --release
+[package]
+name = "gs-tbeam-firmware"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+sat_core    = { package = "sat-core",    git = "https://github.com/asserthq/lorasat", branch = "master" }
+sat_drivers = { package = "sat-drivers", git = "https://github.com/asserthq/lorasat", branch = "master" }
+
+esp-hal = { version = "1.2", features = ["esp32", "unstable"] }
+esp-rtos = { version = "0.4", features = ["esp32", "embassy"] }
+esp-bootloader-esp-idf = { version = "0.6", features = ["esp32"] }
+esp-backtrace = { version = "0.20", features = ["esp32", "panic-handler", "println"] }
+esp-println = { version = "0.18", features = ["esp32"] }
+
+embassy-executor = { version = "0.10" }
+embassy-time = "0.5.1"
+embassy-sync = "0.8"
+embassy-futures = "0.1.2"
+embedded-hal = "1.0.0"
+embedded-hal-async = "1.0.0"
+embedded-hal-bus = { version = "0.3.0", features = ["async"] }
+embedded-io-async = "0.7"
+heapless = "0.9.3"
+defmt = "1.0.1"
+static_cell = "2"
+
+# Драйверы из asserthq/lorasat сейчас не собираются под микроконтроллер:
+# зависимость drv8833-driver требует std. Исправление: patches/0001-drivers-feature-coils.patch.
+# Пока оно не принято в репозиторий команды, драйверы берутся из вашего форка.
+# Когда исправление окажется в asserthq/lorasat, удалите эту секцию целиком.
+[patch."https://github.com/asserthq/lorasat"]
+sat-core    = { git = "https://github.com/MargaritaUlko/lorasat", branch = "fix-drivers-no-std" }
+sat-drivers = { git = "https://github.com/MargaritaUlko/lorasat", branch = "fix-drivers-no-std" }
+
+[profile.dev]
+opt-level = "s"
+
+[profile.release]
+opt-level = "s"
+codegen-units = 1
+lto = "fat"
+debug = 2

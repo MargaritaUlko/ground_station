@@ -1,0 +1,54 @@
+From 8e38ea680b7d4d99035016748af61715775cdc43 Mon Sep 17 00:00:00 2001
+From: Margarita Ulko <mangowillgoodboy@gmail.com>
+Date: Tue, 20 Oct 2026 12:57:53 +0700
+Subject: [PATCH] =?UTF-8?q?drivers:=20=D1=81=D0=B4=D0=B5=D0=BB=D0=B0=D1=82?=
+ =?UTF-8?q?=D1=8C=20=D0=B4=D1=80=D0=B0=D0=B9=D0=B2=D0=B5=D1=80=20=D0=BA?=
+ =?UTF-8?q?=D0=B0=D1=82=D1=83=D1=88=D0=B5=D0=BA=20=D0=BE=D0=BF=D1=86=D0=B8?=
+ =?UTF-8?q?=D0=BE=D0=BD=D0=B0=D0=BB=D1=8C=D0=BD=D1=8B=D0=BC=20(feature=20"?=
+ =?UTF-8?q?coils")?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+drv8833-driver 0.1.0 использует std (Arc, Mutex), поэтому sat-drivers
+не собирается под no_std-цели (STM32, ESP32). Модуль coils и зависимость
+drv8833-driver теперь подключаются только с фичей "coils".
+
+Проверено: client (thumbv6m), sandbox-mcu tx_flash/uart/flash_*
+(thumbv7em) и прошивка T-Beam (xtensa-esp32) собираются.
+---
+ drivers/Cargo.toml | 8 +++++++-
+ drivers/src/lib.rs | 1 +
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/Cargo.toml b/drivers/Cargo.toml
+index de1d63a..6b71430 100644
+--- a/drivers/Cargo.toml
++++ b/drivers/Cargo.toml
+@@ -20,6 +20,12 @@ serde = { version = "1.0.229", default-features = false,  features = ["derive"]
+ postcard = { version = "1.1.3", default-features = false }
+ heapless = { version = "0.9.3", features = ["serde"] }
+ embedded-io-async = "0.7"
+-drv8833-driver = "0.1.0"
++# std-only крейт (Arc/Mutex): подключается только с фичей "coils"
++drv8833-driver = { version = "0.1.0", optional = true }
+ #sx126x = "0.3.0"
+ nalgebra = { version = "0.35.0", default-features = false, features = ["libm"] }
++
++[features]
++default = []
++# Драйвер катушек. drv8833-driver 0.1.0 требует std, поэтому под MCU не собирается.
++coils = ["dep:drv8833-driver"]
+diff --git a/drivers/src/lib.rs b/drivers/src/lib.rs
+index 54869c7..f3025bb 100644
+--- a/drivers/src/lib.rs
++++ b/drivers/src/lib.rs
+@@ -10,4 +10,5 @@ pub mod lora;
+ pub mod proto_impl;
+ pub mod sd;
+ //pub mod uart;
++#[cfg(feature = "coils")]
+ pub mod coils;
+-- 
+2.43.0
+
